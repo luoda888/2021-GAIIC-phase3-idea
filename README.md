@@ -1,5 +1,5 @@
 # 2021-GAIIC-phase3-idea
-非常荣幸能够拿到第二周的周星星，目前的分数是使用了stacking的效果，将目前思路抛砖引玉给大家！
+非常荣幸能够拿到周星星，目前的分数是使用了stacking的效果，将目前思路抛砖引玉给大家！
 
 ## 个人拙见
 ### 思路1 : BERT
@@ -22,7 +22,7 @@
 
 ### 思路2 : Match
 ```
-    使用的数据 q1q2 + q2q1 (对偶)
+    训练的数据 q1q2 + q2q1 (对偶)
     Match可以用到传统的文本匹配模型，文本分类模型，分享几个有用的trick。
         1. Embedding后接Dropout
         2. 对LSTM加TimeSeries(Dense)
@@ -42,4 +42,15 @@
         3. DeepMOJI offline 0.93 / *
 ```
 
-### 思路3 ： Graph
+### 思路3 ： GBDT
+```
+   训练的数据 q1q2 + q2q1
+   类似的比赛里GBDT类特征效果还是挺不错的，这次使用的特征是缝合怪...把paipaidai Top1/Top14, Quora Pair的开源代码copy过来了..
+   分5个filed:
+      1. 图特征： pagerank类(paipaidai Top1)，hash_subgraph_qdiff(paipaidai Top1)
+      2. 统计类特征： 词转化率，各种距离的统计(Quora Pair)
+      3. 主题类特征： TFIDF + NMF, TFIDF + LSI
+      4. 交互类特征： 将q1 q2的各种不同类型(meanpool / maxpool / first / last)的向量(bert / w2v / tfidf-svd)进行统计，计算dot, cosine等
+      5. 学习类特征： 将q1 q2拼接成一个句子，使用tfidf + countvec拼接当特征，过各种弱学习器后拼接概率
+   对GBDT类模型，校验对称性的方法就是，预测q1 q2和q2 q1的概率，看这两组概率的相关性，如果较低说明有必要对偶一下（提升会比较明显）
+```

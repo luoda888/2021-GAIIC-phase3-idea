@@ -16,12 +16,12 @@
 
 ### 思路1 : BERT (框架: PyTorch - Transformers)
 ```
-   在nn这边可以分解为mask + pretrain + fine-tuning的组合(梯度累积=2 / FP16 / 训练数据是q1q2 + q2q1) 
-      1. NeZha-Large (normal MLM) (50EPOCH / LR5e-5 / LabelSmoothing0.01 / SEED 2021) (MLM Loss ≈ 0.15)
-      2. NeZha-Large (ngram MLM) (100EPOCH / LR5e-5 / LabelSmoothing0 / SEED 2021) (MLM Loss ≈ 0.3)
-      3. NeZha-Base (normal MLM) (50EPOCH / LR6e-5 / LabelSmoothing0 / SEED 2021) (MLM Loss ≈ 0.3)
-      4. Bert-Base (normal MLM) (300EPOCH / LR5e-5 / LabelSmoothing0 / SEED 2021) (MLM Loss ≈ 0.1)
-      5. Electra-Base (ngram MLM) (200EPOCH / LR1e-4 / LabelSmoothing0.01 / SEED 2021) (MLM Loss ≈ 0.1)
+   在nn这边可以分解为mask + pretrain + fine-tuning的组合(梯度累积=2 / FP16 / 训练数据是q1q2 + q2q1) (again = 从0训练, transfer = 加载预训练权重)
+      1. Transfer NeZha-Large (normal MLM) (50EPOCH / LR5e-5 / LabelSmoothing0.01 / SEED 2021) (MLM Loss ≈ 0.15)
+      2. Transfer NeZha-Large (ngram MLM) (100EPOCH / LR5e-5 / LabelSmoothing0 / SEED 2021) (MLM Loss ≈ 0.3)
+      3. Transfer NeZha-Base (normal MLM) (50EPOCH / LR6e-5 / LabelSmoothing0 / SEED 2021) (MLM Loss ≈ 0.3)
+      4. Again Bert-Base (normal MLM) (300EPOCH / LR5e-5 / LabelSmoothing0 / SEED 2021) (MLM Loss ≈ 0.1)
+      5. Again Electra-Base (ngram MLM) (200EPOCH / LR1e-4 / LabelSmoothing0.01 / SEED 2021) (MLM Loss ≈ 0.1)
     Fine Tune （数据是q1q2, 不知道为啥对称会过拟合）
       线下结果发现复杂的模型结构接在Bert后边效果还不如CLS的... 目前尝试能够有用的
       1. 第一层

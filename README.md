@@ -69,6 +69,7 @@
 
 ### MASK、数据构造方面
 ```
+   0. 没有对词频做筛选，使用了全部的词
    1. ngram mask 在这起到的感觉是类似 脱敏前的 wwm mask的效果
    2. random mask的策略也比较重要，可以试试针对oov的mask
    3*. follow ngram mask的思路，实际上是构造了新词，那我们可以手动的生成各种ngram的词汇，从而进行数据增强

@@ -55,7 +55,7 @@
         3. DeepMOJI offline 0.93 / *
 ```
 
-### 思路3 : GBDT
+### 思路3 : GBDT (框架: Xgboost & LightGBM & Catboost)
 ```
    训练的数据 q1q2 + q2q1
    类似的比赛里GBDT类特征效果还是挺不错的，这次使用的特征是缝合怪...把paipaidai Top1/Top14, Quora Pair的开源代码copy过来了..

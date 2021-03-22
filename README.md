@@ -60,7 +60,7 @@
    训练的数据 q1q2 + q2q1
    类似的比赛里GBDT类特征效果还是挺不错的，这次使用的特征是缝合怪...把paipaidai Top1/Top14, Quora Pair的开源代码copy过来了..
    分5个filed:
-      1. 图特征： pagerank类(paipaidai Top1)，hash_subgraph_qdiff(paipaidai Top1)
+      1. 图特征： pagerank类(paipaidai Top1)，hash_subgraph_qdiff(paipaidai Top1)(word 粒度)
       2. 统计类特征： 词转化率，各种距离的统计(Quora Pair)
       3. 主题类特征： TFIDF + NMF, TFIDF + LSI
       4. 交互类特征： 将q1 q2的各种不同类型(meanpool / maxpool / first / last)的向量(bert / w2v / tfidf-svd)进行统计，计算dot, cosine等

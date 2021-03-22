@@ -7,32 +7,33 @@
    q1-q2 = 1, q2-q3 = 1 ---> q1-q3 = 1
    q1-q2 = 1, q2-q3 = 0 ---> q1-q3 = 0
    构造强连通分量后大概增广了9000条数据，提升大概是2k左右
+   随机负采样效果不佳(猜测是目前给的pair已经是区分难度较大的，导致随机负采样的样本过于简单，反而让较难样本的分类出现bias)
    
    使用数据对偶(q1q2 + q2q1)，取决于模型的效果，我的经验是Bert + 对偶没啥变化，Match / GBDT + 对偶是有显著提升的
    
    MAXLEN = 32, 这个长度已经几乎覆盖了所有的文本，主要是模型能训练的快很多...
 ```
 
-### 思路1 : BERT
+### 思路1 : BERT (框架: PyTorch - Transformers)
 ```
-   在nn这边可以分解为mask + pretrain + fine-tuning的组合(梯度累积=2 / FP16 / 训练数据是q1q2 + q2q1)
+   在nn这边可以分解为mask + pretrain + fine-tuning的组合(梯度累积=2 / FP16 / 训练数据是q1q2 + q2q1) 
       1. NeZha-Large (normal MLM) (50EPOCH / LR5e-5 / LabelSmoothing0.01 / SEED 2021) (MLM Loss ≈ 0.15)
       2. NeZha-Large (ngram MLM) (100EPOCH / LR5e-5 / LabelSmoothing0 / SEED 2021) (MLM Loss ≈ 0.3)
       3. NeZha-Base (normal MLM) (50EPOCH / LR6e-5 / LabelSmoothing0 / SEED 2021) (MLM Loss ≈ 0.3)
       4. Bert-Base (normal MLM) (300EPOCH / LR5e-5 / LabelSmoothing0 / SEED 2021) (MLM Loss ≈ 0.1)
       5. Electra-Base (ngram MLM) (200EPOCH / LR1e-4 / LabelSmoothing0.01 / SEED 2021) (MLM Loss ≈ 0.1)
     Fine Tune （数据是q1q2, 不知道为啥对称会过拟合）
-      线下结果发现复杂的模型结构接在Bert后边效果还不如CLS的... 目前尝试的
+      线下结果发现复杂的模型结构接在Bert后边效果还不如CLS的... 目前尝试能够有用的
       1. 第一层
       2. 最后一层
       3. MeanPool
       4. 第一层 + 最后一层 + MeanPool
     大致效果 NeZha-Large(ngram) > NeZha-Large(normal) > NeZha-Base(normal) > Electra-Base(ngram MLM) > Bert-Base (normal MLM)
-    最好的单模 NeZha-Large(ngram)(0.909) + FGM(3k) + Lookahead(1k) = 0.913 (5fold-offline = 0.977)
+    最好的单模 NeZha-Large(ngram)(0.909) + FGM(3k) + Lookahead(1k) = 0.913 (5fold-offline = 0.977) (代码参考tutule大佬开源的nezha-torch预训练)
       分析一下为啥ngram会有用如：我喜欢你，拆分成字是，“我，喜，欢，你”。但是ngram能捕获一定的如 “喜欢” 这种词级别的信息，类似于全词遮罩的做法
 ```
 
-### 思路2 : Match
+### 思路2 : Match (框架: Tensorflow - Keras)
 ```
     训练的数据 q1q2 + q2q1 (对偶)
     Match可以用到传统的文本匹配模型，文本分类模型，分享几个有用的trick。
@@ -88,7 +89,9 @@
 
 ### 打算实践的探索思路
 ```
-   1. 对比学习，如triplet-loss (q1, q2, q3, label), 可以使用大量的闭包关系来构造(author, left, right)数据，但是难点在测试集如何构造，以及图上的孤立点如何构造
-   2. 半监督，可以从test里构造大量的pair来构造自标注样本，计算量有点大，笛卡尔积(100000 * 25000)，目前没想到优化方法，机器吃不消
-   3. Link-Prediction，难点在图节点怎么定义
+   1. 对比学习A，Follow triplet-loss (q1, q2, q3, label), 可以使用大量的闭包关系来构造(author, left, right)数据，但是难点在测试集如何构造，以及图上的孤立点如何构造
+   2. 对比学习B，Follow SCL (facebook & Standford)的方法，在pretrain的时候把同类(query group)的当正样本，不同类的当负样本，MLM+分类任务
+   3. 对比学习C，Follow SimCLR，做二次的pretrain，具体定义数据表征方法为EDA(EMNLP 2019), x'与x''为正样本，x'与y'为负样本，吃机器，跑不动
+   4. 半监督，可以从test里构造大量的pair来构造自标注样本，计算量有点大，笛卡尔积(100000 * 25000)，目前没想到优化方法，机器吃不消
+   5. Link-Prediction，难点在图节点怎么定义
 ```
